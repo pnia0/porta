@@ -3,9 +3,10 @@ mod core;
 use std::sync::LazyLock;
 use std::path::PathBuf;
 use std::env;
-use iced::{Center, Color, Element, Event, Task as Command, event};
+use iced::{Theme, Background, Center, Color, Border, Element, Event, Length, Task as Command, event};
+use iced::border::{rounded, Radius};
 use iced::widget::operation::focus;
-use iced::widget::{Column, button, column, text_input};
+use iced::widget::{Column, button, container, column, text_input};
 use iced_layershell::Settings;
 use iced_layershell::reexport::{ Anchor, KeyboardInteractivity };
 use iced_layershell::build_pattern::application;
@@ -26,7 +27,7 @@ pub fn main() -> Result<(), iced_layershell::Error> {
         .subscription(Launcher::subscription)
         .settings(Settings {
             layer_settings: LayerShellSettings {
-                size: Some((250, 400)),
+                size: Some((300, 350)),
                 exclusive_zone: 400,
                 anchor: Anchor::Left | Anchor::Right,
                 keyboard_interactivity: KeyboardInteractivity::Exclusive,
@@ -127,16 +128,43 @@ impl Launcher {
         }
     }
 
-    fn view(&self) -> Column<'_, Message> {
+    fn view(&self) -> Element<'_, Message> {
         let command_input: Element<Message> = text_input("input command", &self.command)
             .on_input(Message::SearchEditChanged)
             .id(INPUT_ID.clone())
+            .style(|theme: &Theme, status: text_input::Status| text_input::Style {
+                background: Background::Color(Color::from_rgba(0.0, 0.0, 0.0, 0.0)),
+                border: rounded(Radius::new(0))
+                    .width(0.0)
+                    .color(Color{r: 0.0, g: 0.0, b: 0.0, a: 0.0}),
+                ..text_input::default(theme, status)
+            })
             .into();
-        column![
-            command_input
-        ]
-        .padding(20)
-        .align_x(Center)
+        let line: Element<Message> = container("")
+            .width(Length::Fill)
+            .height(1.5)
+            .style(|_| container::Style {
+                background: Some(Color::from_rgba(1.0, 0.8, 0.0, 1.0).into()),
+                ..Default::default()
+            })
+            .into();
+
+        container(
+            column![
+                command_input,
+                line
+            ]
+            .padding(10)
+            .align_x(Center)
+        )
+        .style(|_| container::Style {
+            background: Some(Background::Color(Color::from_rgba(0.2, 0.2, 0.2, 0.5))),
+                border: rounded(Radius::new(10)),
+            ..container::Style::default()
+        })
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .into()
     }
 
     fn namespace() -> String {
