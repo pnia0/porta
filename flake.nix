@@ -4,7 +4,7 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { nixpkgs, flake-utils, ... }:
+  outputs = { self, nixpkgs, flake-utils, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
@@ -33,6 +33,13 @@
           '';
           PORTA_CONFIG = "${./fixtures/config.toml}";
         };
+
+        packages.default = pkgs.callPackage ./nix/package.nix { };
       }
-    );
+    ) // {
+      homeManagerModules.default = { lib, pkgs, ... }: {
+        imports = [ ./nix/hm-module.nix ];
+        programs.porta.package = lib.mkDefault self.packages.${pkgs.system}.default;
+      };
+    };
 }
